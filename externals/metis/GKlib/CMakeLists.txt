@@ -7,10 +7,16 @@ unset(abs)
 include(GKlibSystem.cmake)
 
 add_library(GKlib STATIC ${GKlib_sources})
-target_include_directories(GKlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Include
+set(GKLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(GKlib PUBLIC ${GKLIB_INCLUDE_DIRS})
+
+# Supress warnings
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(GKlib PUBLIC -w)
 endif()
+
 if(UNIX)
   target_link_libraries(GKlib m)
 endif(UNIX)

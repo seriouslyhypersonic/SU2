@@ -20,10 +20,17 @@ set(CGNS_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/adf/ADF_internals.c)
 
 add_library(cgns ${CGNS_SRC})
-target_include_directories(cgns PUBLIC
+
+# Include
+set(CGNS_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/adf)
+target_include_directories(cgns PUBLIC ${CGNS_INCLUDE_DIRS})
 
+# PIC
+set_target_properties(cgns PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# Supress warnings
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(cgns PUBLIC -w)
 endif()

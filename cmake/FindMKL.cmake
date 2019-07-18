@@ -52,7 +52,7 @@ message("---------------------------------------------------------------------")
 
 # --- Detect execution mode
 if (MKL_THREADING STREQUAL "intel")
-    message("MKL execution mode: parallel (Intel(R) OpenMP library)")
+    message(STATUS "MKL execution mode: parallel (Intel(R) OpenMP library)")
     set(MKL_THREADING_INTEL TRUE)
 elseif (MKL_THREADING STREQUAL "gnu")
     if (APPLE)
@@ -61,10 +61,10 @@ elseif (MKL_THREADING STREQUAL "gnu")
                 "You can select Intel(R) instead")
     endif ()
 
-    message("MKL execution mode: parallel (GNU OpenMP library)")
+    message(STATUS "MKL execution mode: parallel (GNU OpenMP library)")
     set(MKL_THREADING_GNU TRUE)
 elseif (MKL_THREADING STREQUAL "sequential")
-    message("MKL execution mode: sequential")
+    message(STATUS "MKL execution mode: sequential")
     set(MKL_THREADING_SEQUENTIAL TRUE)
 elseif(MKL_THREADING)
     message(FATAL_ERROR
@@ -123,11 +123,11 @@ if (MKL_THREADING_SEQUENTIAL)
 endif ()
 
 # --- Find MKL summary
-message("Looking for")
-message("    MKL interface library        ${INT_LIB}")
-message("    MKL core library             ${COR_LIB}")
-message("    MKL threading layer library  ${THR_LIB}")
-message("    Run-time threading library   ${RTL_LIB}")
+message(STATUS "Looking for:")
+message(STATUS "  MKL interface library        ${INT_LIB}")
+message(STATUS "  MKL core library             ${COR_LIB}")
+message(STATUS "  MKL threading layer library  ${THR_LIB}")
+message(STATUS "  Run-time threading library   ${RTL_LIB}")
 
 # --- Search libraries and includes
 find_library(MKL_INTERFACE_LIBRARY NAMES ${INT_LIB}
@@ -136,7 +136,7 @@ find_library(MKL_INTERFACE_LIBRARY NAMES ${INT_LIB}
               $ENV{INTEL}/mkl/lib/intel64
         NO_DEFAULT_PATH)
 if(NOT MKL_INTERFACE_LIBRARY)
-    message($ENV{MKLROOT})
+    message(STATUS $ENV{MKLROOT})
     message(FATAL_ERROR "Cannot find MKL interface library: ${INT_LIB}")
 endif()
 
@@ -230,8 +230,8 @@ else()
 endif()
 
 # Report success
-message(Result)
-message("    Found MKL version " ${MKL_VERSION})
+message(STATUS Result:)
+message(STATUS "  Found MKL version " ${MKL_VERSION})
 
 # Handle the QUIETLY and REQUIRED arguments and set MKL_FOUND to TRUE
 include(FindPackageHandleStandardArgs)

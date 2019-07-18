@@ -99,10 +99,17 @@ set(METIS_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/libmetis/wspace.c)
 
 add_library(metis ${METIS_SRC})
-target_include_directories(metis PUBLIC
+
+# Include
+set(METIS_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/libmetis)
+target_include_directories(metis PUBLIC ${METIS_INCLUDE_DIRS})
 
+# PIC
+set_target_properties(metis PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# Supress warnings
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(metis PUBLIC -w)
 endif()

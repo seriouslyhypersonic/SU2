@@ -5,11 +5,30 @@ message("---------------------------------------------------------------------")
 message(" External dependencies                                               ")
 message("---------------------------------------------------------------------")
 if(ENABLE_CGNS)
-    message("    CGNS enabled")
     add_subdirectory(cgns)
+    add_definitions(-DHAVE_CGNS=1) # SU2 flag
 endif()
 
 if(ENABLE_METIS)
-    message("    METIS enabled")
     add_subdirectory(metis)
+    add_definitions(-DHAVE_METIS=1) # SU2 flag
+endif()
+
+if(ENABLE_PARMETIS)
+    add_subdirectory(parmetis)
+    add_definitions(-DHAVE_PARMETIS=1) # SU2 flag
+endif()
+
+# Summary
+if (ENABLE_CGNS OR ENABLE_METIS OR ENABLE_PARMETIS)
+    message(STATUS "Enabled the following libraries:")
+endif ()
+if(ENABLE_CGNS)
+    message(STATUS "  CGNS     defined HAVE_CGNS")
+endif()
+if(ENABLE_METIS)
+    message(STATUS "  METIS    defined HAVE_METIS")
+endif()
+if(ENABLE_PARMETIS)
+    message(STATUS "  PARMETIS defined HAVE_PARMETIS")
 endif()

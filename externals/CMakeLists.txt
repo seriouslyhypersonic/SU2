@@ -19,6 +19,11 @@ if(ENABLE_PARMETIS)
     add_definitions(-DHAVE_PARMETIS=1) # SU2 flag
 endif()
 
+if(ENABLE_TECIO)
+    add_subdirectory(tecio/teciosrc)
+    add_definitions(-DHAVE_TECPLOT_API=1) # SU2 flag
+endif()
+
 # Summary
 if (ENABLE_CGNS OR ENABLE_METIS OR ENABLE_PARMETIS)
     message(STATUS "Enabled the following libraries:")
@@ -31,4 +36,7 @@ if(ENABLE_METIS)
 endif()
 if(ENABLE_PARMETIS)
     message(STATUS "  PARMETIS defined HAVE_PARMETIS")
+endif()
+if(ENABLE_TECIO)
+    message(STATUS "  TECIO defined HAVE_TECPLOT_API")
 endif()

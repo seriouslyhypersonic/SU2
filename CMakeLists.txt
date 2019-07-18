@@ -5,9 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # ------------------------------------------------------------------------------
 # Options
-#   External:
-#       - ENABLE_CGNS
-
+# ------------------------------------------------------------------------------
 option(ENABLE_CGNS "Build with CFD General Notation System (CGNS) standard support (ADF only)" OFF)
 option(ENABLE_METIS "Enable metis support" OFF)
 option(ENABLE_PARMETIS "Enable parmetis support" OFF)
@@ -58,6 +56,5 @@ if(MKL_FOUND)
         message(FATAL_ERROR "SU2 requires MKL 2019 or newer")
     endif()
 endif()
-
 
 add_subdirectory(externals)

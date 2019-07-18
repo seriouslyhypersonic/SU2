@@ -12,7 +12,7 @@
 #
 # To find, include and link with MKL:
 # MKL_FOUND                   - System has MKL
-# MKL_VERSION                 - MKL verion (full)
+# MKL_VERSION                 - MKL version (full)
 # MKL_VERSION_MAJOR           - Major MKL version
 # MKL_INCLUDE_DIRS            - MKL include directories
 # MKL_LIBRARIES               - The MKL libraries and link advisor dependecies
@@ -49,6 +49,11 @@ message("---------------------------------------------------------------------")
 #        AND MKL_THREADING_LAYER_LIBRARY)
 #    set (MKL_FIND_QUIETLY TRUE)
 #endif()
+if (NOT $ENV{MKLROOT} AND NOT $ENV{INTEL})
+    message(FATAL_ERROR
+            "No hints for MKL were found, please set MKLROOT or INTEL "
+            "environment variables")
+endif ()
 
 # --- Detect execution mode
 if (MKL_THREADING STREQUAL "intel")

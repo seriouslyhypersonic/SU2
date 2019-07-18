@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.10)
+project(external)
+
+message("---------------------------------------------------------------------")
+message(" External dependencies                                               ")
+message("---------------------------------------------------------------------")
+if(ENABLE_CGNS)
+    message("    CGNS enabled")
+    add_subdirectory(cgns)
+endif()
+
+if(ENABLE_METIS)
+    message("    METIS enabled")
+    add_subdirectory(metis)
+endif()

@@ -24,7 +24,20 @@ message("---------------------------------------------------------------------")
     message(STATUS "MPI libraries " ${MPI_CXX_LIBRARIES})
 endif()
 
-# Follows the spirit of configure.ac
+# Generate list of active external dependencies
+set(EXTERNAL_LIBRARIES)
+if (ENABLE_CGNS)
+    list(APPEND EXTERNAL_LIBRARIES  cgns)
+endif ()
+if (ENABLE_METIS)
+    list(APPEND EXTERNAL_LIBRARIES  metis GKlib)
+endif ()
+if (ENABLE_PARMETIS)
+    list(APPEND EXTERNAL_LIBRARIES  parmetis)
+endif ()
+if (ENABLE_TECIO)
+    list(APPEND EXTERNAL_LIBRARIES  tecio)
+endif ()
 
 # Type sizes
 INCLUDE (CheckTypeSize)
@@ -59,3 +72,4 @@ endif()
 
 add_subdirectory(externals)
 add_subdirectory(Common)
+add_subdirectory(SU2_CFD)

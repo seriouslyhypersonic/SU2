@@ -6,22 +6,18 @@ message(" External dependencies                                               ")
 message("---------------------------------------------------------------------")
 if(ENABLE_CGNS)
     add_subdirectory(cgns)
-    add_definitions(-DHAVE_CGNS=1) # SU2 flag
 endif()
 
 if(ENABLE_METIS)
     add_subdirectory(metis)
-    add_definitions(-DHAVE_METIS=1) # SU2 flag
 endif()
 
 if(ENABLE_PARMETIS)
     add_subdirectory(parmetis)
-    add_definitions(-DHAVE_PARMETIS=1) # SU2 flag
 endif()
 
 if(ENABLE_TECIO)
     add_subdirectory(tecio/teciosrc)
-    add_definitions(-DHAVE_TECPLOT_API=1) # SU2 flag
 endif()
 
 # Summary
@@ -30,7 +26,6 @@ if (ENABLE_CGNS OR ENABLE_METIS OR ENABLE_PARMETIS)
 endif ()
 if(ENABLE_CGNS)
     message(STATUS "  CGNS     defined HAVE_CGNS")
-    message(STATUS "           include " ${CGNS_INCLUDE_DIRS})
 endif()
 if(ENABLE_METIS)
     message(STATUS "  METIS    defined HAVE_METIS")
@@ -41,5 +36,5 @@ endif()
 if(ENABLE_TECIO)
     message(STATUS "  TECIO    defined HAVE_TECPLOT_API")
 endif()
-message(STATUS "Linking with:")
-message(STATUS "  " ${EXTERNAL_LIBRARIES})
+message(STATUS "Linking SU2 with:")
+message(STATUS "  ${EXTERNAL_LIBRARIES}")

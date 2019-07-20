@@ -3,6 +3,14 @@ project(cgns)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# ------------------------------------------------------------------------------
+# GKLib setup
+# ------------------------------------------------------------------------------
+# todo: conditional to detect if compiling with openmp
+add_definitions(-D__OPENMP__)
+add_definitions(-D_FILE_OFFSET_BITS=64 -DNDEBUG -DNDEBUG2 -DHAVE_EXECINFO_H -DHAVE_GETLINE)
+
+option(OPENMP "" ON)
 add_subdirectory(GKlib)
 
 set(METIS_SRC
@@ -103,8 +111,9 @@ add_library(metis ${METIS_SRC})
 # Include
 set(METIS_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/libmetis)
-target_include_directories(metis PUBLIC ${METIS_INCLUDE_DIRS})
+        ${CMAKE_CURRENT_SOURCE_DIR}/libmetis
+        ${MPI_CXX_INCLUDE_PATH})
+target_include_directories(metis PUBLIC ${METIS_INCLUDE_DIRS} )
 
 # PIC
 set_target_properties(metis PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -114,4 +123,5 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(metis PUBLIC -w)
 endif()
 
-target_link_libraries(metis GKlib)
+target_compile_options(metis PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+target_link_libraries(metis GKlib ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})

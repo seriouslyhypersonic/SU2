@@ -86,6 +86,16 @@ set(SU2_COMMON_SRC
 add_library(su2_common ${SU2_COMMON_SRC})
 
 # Include
-set(SU2_INCLUDE_DIRS PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(su2_common ${SU2_INCLUDE_DIRS})
+set(SU2_INCLUDE_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${MPI_CXX_INCLUDE_PATH}
+        ${MKL_INCLUDE_DIRS})
+
+target_include_directories(su2_common PUBLIC ${SU2_INCLUDE_DIRS})
+target_compile_options(su2_common PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+target_link_libraries(su2_common
+        ${MPI_CXX_LIBRARIES}
+        ${MPI_CXX_LINK_FLAGS}
+        ${MKL_LIBRARIES}
+        ${EXTERNAL_LIBRARIES})
+

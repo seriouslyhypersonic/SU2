@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(su2_cfd)
 
+set(CMAKE_CXX_STANDARD 17)
+
 # ------------------------------------------------------------------------------
 # SU2 core
 # ------------------------------------------------------------------------------
@@ -115,6 +117,4 @@ add_executable(su2_cfd ${SU2_CFD_SRC})
 # Include
 target_include_directories(su2_cfd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_link_libraries(su2_cfd su2_core)
-
-set(CMAKE_CXX_STANDARD 17)
+target_link_libraries(su2_cfd su2_common su2_core)

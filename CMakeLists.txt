@@ -6,35 +6,55 @@ set(CMAKE_CXX_STANDARD 17)
 # ------------------------------------------------------------------------------
 # Options
 # ------------------------------------------------------------------------------
+
+# SU2 modules
+option(WITH_SU2_CFD "Build CFD module" ON)
+
+# External dependencies
 option(ENABLE_CGNS "Build with CFD General Notation System (CGNS) standard support (ADF only)" OFF)
 option(ENABLE_METIS "Enable metis support" OFF)
 option(ENABLE_PARMETIS "Enable parmetis support" OFF)
 option(ENABLE_TECIO "Enable tecio support" OFF)
 
+# Parallel build
+option(ENABLE_MPI "Enable MPI message")
+
+# MKL support
+option(ENABLE_MKL "Build with Intel (R) MKL support" ON)
+
 # Process options
-if (ENABLE_METIS)
-message("---------------------------------------------------------------------")
-message(" MPI                                                                 ")
-message("---------------------------------------------------------------------")
-find_package(MPI)
-if(NOT MPI_CXX_FOUND)
-    message(FATAL_ERROR "Cannot find MPI")
-endif()
-add_definitions(-DHAVE_MPI) # SU2 flag
-
-message(STATUS "MPI include   " ${MPI_CXX_INCLUDE_PATH})
-message(STATUS "MPI libraries " ${MPI_CXX_LIBRARIES})
-message(STATUS "MPI compiler  "  ${MPI_CXX_COMPILER})
-message(STATUS "              "  ${MPI_C_COMPILER})
-message(STATUS "MPI flags     "  ${MPI_CXX_LINK_FLAGS})
-message(STATUS "              "  ${MPI_CXX_COMPILE_FLAGS})
-message(STATUS "defined       HAVE_MPI")
+if(ENABLE_MPI)
+    # Need metis and parmetis for parallel build
+    set(ENABLE_METIS  ON)
+    set(ENABLE_PARMETIS ON)
 endif()
 
-set(THE_MPI_CXX_COMPILER ${MPI_CXX_COMPILER})
-set(THE_MPI_C_COMPILER ${MPI_C_COMPILER})
+if (ENABLE_MPI)
+    message("---------------------------------------------------------------------")
+    message(" MPI                                                                 ")
+    message("---------------------------------------------------------------------")
+    find_package(MPI REQUIRED)
+    if(NOT MPI_CXX_FOUND)
+        message(FATAL_ERROR "Cannot find MPI")
+    endif()
+    add_definitions(-DHAVE_MPI) # SU2 flag
 
-# Generate list of active external dependencies
+    message(STATUS "MPI include       " ${MPI_CXX_INCLUDE_PATH})
+    message(STATUS "MPI libraries     " ${MPI_CXX_LIBRARIES})
+    message(STATUS "MPI compilers     "  ${MPI_CXX_COMPILER})
+    message(STATUS "                  "  ${MPI_C_COMPILER})
+    message(STATUS "MPI link flags    "  ${MPI_CXX_LINK_FLAGS})
+    message(STATUS "MPI compile flags "  ${MPI_CXX_COMPILE_FLAGS})
+    message(STATUS "SU2 define        HAVE_MPI")
+
+    # Set the MPI compilers here
+    set(THE_MPI_CXX_COMPILER ${MPI_CXX_COMPILER})
+    set(THE_MPI_C_COMPILER ${MPI_C_COMPILER})
+endif()
+
+# ------------------------------------------------------------------------------
+# External dependencies
+# ------------------------------------------------------------------------------
 set(EXTERNAL_LIBRARIES)
 if (ENABLE_CGNS)
     list(APPEND EXTERNAL_LIBRARIES  cgns)
@@ -54,7 +74,7 @@ if (ENABLE_TECIO)
 endif ()
 
 # Type sizes
-INCLUDE (CheckTypeSize)
+include(CheckTypeSize)
 message("---------------------------------------------------------------------")
 message(" Check for important type sizes                                      ")
 message("---------------------------------------------------------------------")
@@ -76,24 +96,42 @@ message(STATUS "void *       " ${SIZE_OF_VOID_P}    " bytes")
 # ------------------------------------------------------------------------------
 # MKL
 # ------------------------------------------------------------------------------
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-find_package(MKL)
-if(MKL_FOUND)
-    if(MKL_VERSION_MAJOR LESS 2019)
-        message(FATAL_ERROR "SU2 requires MKL 2019 or newer")
+if (ENABLE_MKL)
+    if(NOT MKL_THREADING)
+        # No execution mode provided, use intel as default
+        set(MKL_THREADING intel)
     endif()
-    add_definitions(-DHAVE_MKL)
-    add_definitions(-DMKL_DIRECT_CALL_SEQ)
-    message(STATUS "  defined HAVE_MKL")
-    message(STATUS "          MKL_DIRECT_CALL_SEQ")
-endif()
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+    find_package(MKL)
+    if(MKL_FOUND)
+        if(MKL_VERSION_MAJOR LESS 2019)
+            message(FATAL_ERROR "SU2 requires MKL 2019 or newer")
+        endif()
+        add_definitions(-DHAVE_MKL)
+        add_definitions(-DMKL_DIRECT_CALL_SEQ)
+        message(STATUS "  SU2 define HAVE_MKL")
+        message(STATUS "  SU2 define MKL_DIRECT_CALL_SEQ")
+    endif()
+endif ()
 
+# ------------------------------------------------------------------------------
+# Add modules
+# ------------------------------------------------------------------------------
+
+# External dependencies (if any)
 if (ENABLE_CGNS OR ENABLE_METIS OR ENABLE_PARMETIS OR ENABLE_TECIO)
     add_subdirectory(externals)
 endif ()
 
 add_subdirectory(Common)
-add_subdirectory(SU2_CFD)
+
+message("---------------------------------------------------------------------")
+message(" SU2 modules                                                         ")
+message("---------------------------------------------------------------------")
+if(WITH_SU2_CFD)
+    add_subdirectory(SU2_CFD)
+    message(STATUS SU2_CFD)
+endif()
 
 # ------------------------------------------------------------------------------
 # MPI compilers (this is changed somewhere along this script, an add_subdir?)

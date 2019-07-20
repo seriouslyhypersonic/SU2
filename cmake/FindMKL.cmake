@@ -20,7 +20,7 @@
 # For optional detection summary:
 # MKL_INTERFACE_LIBRARY       - MKL interface library
 # MKL_CORE_LIBRARY            - MKL core library
-# MKL_THREADING_LAYER_LIBRARY - MKL core library
+# MKL_THREADING_LAYER_LIBRARY - MKL threaing layer library
 #
 # Requires one of the following envirnment variables:
 #     - MKLROOT points to the MKL root

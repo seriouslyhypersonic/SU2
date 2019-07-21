@@ -24,7 +24,7 @@
 #
 # Requires one of the following envirnment variables:
 #     - MKLROOT points to the MKL root
-#     - INTEL   points to the parent directory of MKLROOT
+#     todo: remove - INTEL   points to the parent directory of MKLROOT
 #
 # Execution mode is selected with -DMKL_THREADING=<intel | gnu | sequential>
 #     - intel      uses Intel(R) OpenMP libraries
@@ -38,9 +38,22 @@
 #     target_link_libraries(TARGET ${MKL_LIBRARIES})
 # endif()
 
+# ------------------------------------------------------------------------------
+# Options
+# ------------------------------------------------------------------------------
+if(NOT MKL_LINKING)
+    set(MKL_STATIC ON)
+    set(MKL_LINKING static)
+elseif(MKL_LINKING STREQUAL static)
+    set(MKL_STATIC ON)
+elseif(NOT MKL_LINKING STREQUAL dynamic)
+    message(FATAL_ERROR "Invalid MKL_LINKING value '${MKL_LINKING}'")
+endif()
+
 message("---------------------------------------------------------------------")
 message("Intel(R) Math Kernel libraries                                       ")
 message("---------------------------------------------------------------------")
+message(STATUS "MKL linking                    ${MKL_LINKING}")
 # If already in cache, be silent
 #if (MKL_INCLUDE_DIRS
 #        AND MKL_LIBRARIES
@@ -49,15 +62,15 @@ message("---------------------------------------------------------------------")
 #        AND MKL_THREADING_LAYER_LIBRARY)
 #    set (MKL_FIND_QUIETLY TRUE)
 #endif()
-if (NOT $ENV{MKLROOT} AND NOT $ENV{INTEL})
+if (NOT DEFINED ENV{MKLROOT})
     message(FATAL_ERROR
-            "No hints for MKL were found, please set MKLROOT or INTEL "
-            "environment variables")
+            "No hints for MKL were found, please set MKLROOT "
+            "environment variable")
 endif ()
 
 # --- Detect execution mode
 if (MKL_THREADING STREQUAL "intel")
-    message(STATUS "MKL execution mode: parallel (Intel(R) OpenMP library)")
+    message(STATUS "MKL execution mode             parallel (Intel(R) OpenMP library)")
     set(MKL_THREADING_INTEL TRUE)
 elseif (MKL_THREADING STREQUAL "gnu")
     if (APPLE)
@@ -66,10 +79,10 @@ elseif (MKL_THREADING STREQUAL "gnu")
                 "You can select Intel(R) instead")
     endif ()
 
-    message(STATUS "MKL execution mode: parallel (GNU OpenMP library)")
+    message(STATUS "MKL execution mode             parallel (GNU OpenMP library)")
     set(MKL_THREADING_GNU TRUE)
 elseif (MKL_THREADING STREQUAL "sequential")
-    message(STATUS "MKL execution mode: sequential")
+    message(STATUS "MKL execution mode             sequential")
     set(MKL_THREADING_SEQUENTIAL TRUE)
 elseif(MKL_THREADING)
     message(FATAL_ERROR
@@ -81,20 +94,28 @@ else()
 endif()
 
 # --- Generate appropriate filenames for MKL libraries
-# Static linkage: (prefix)libname(sufix)
-if(NOT BUILD_SHARED_LIBS)
+# (prefix)libname(sufix)
+
+if(MKL_STATIC)
+    set(MKL_LIB_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
+    set(MKL_LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+elseif()
+    set(MKL_LIB_PREFIX ${MKL_LIB_PREFIX})
+    set(MKL_LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+
     # MKL Interface layer library - mkl_intel_ilp64 (always 64 bit integer)
-    set(INT_LIB "${CMAKE_STATIC_LIBRARY_PREFIX}")
+    set(INT_LIB "${MKL_LIB_PREFIX}")
     set(INT_LIB "${INT_LIB}mkl_intel_ilp64")
-    set(INT_LIB "${INT_LIB}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(INT_LIB "${INT_LIB}${MKL_LIB_SUFFIX}")
 
     # MKL Core library - mkl_core
-    set(COR_LIB "${CMAKE_STATIC_LIBRARY_PREFIX}")
+    set(COR_LIB "${MKL_LIB_PREFIX}")
     set(COR_LIB "${COR_LIB}mkl_core")
-    set(COR_LIB "${COR_LIB}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(COR_LIB "${COR_LIB}${MKL_LIB_SUFFIX}")
 
     # MKL threading layer library
-    set(THR_LIB "${CMAKE_STATIC_LIBRARY_PREFIX}")
+    set(THR_LIB "${MKL_LIB_PREFIX}")
     if (MKL_THREADING_INTEL)
         # use - mkl_intel_thread
         set(THR_LIB "${THR_LIB}mkl_intel_thread")
@@ -105,14 +126,9 @@ if(NOT BUILD_SHARED_LIBS)
         # use - mkl_sequential
         set(THR_LIB "${THR_LIB}mkl_sequential")
     endif()
-    set(THR_LIB "${THR_LIB}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-else()
+    set(THR_LIB "${THR_LIB}${MKL_LIB_SUFFIX}")
+
     # TODO: handle this in the future noting that on windows libname_dll.dll
-    set(INT_LIB "mkl_intel_ilp64.")
-    #set(SEQ_LIB "mkl_sequential")
-    set(THR_LIB "mkl_intel_thread")
-    set(COR_LIB "mkl_core")
-endif()
 
 # --- Generate appropriate filename for run-time threading library
 set(RTL_LIB "${CMAKE_SHARED_LIBRARY_PREFIX}")
@@ -190,9 +206,6 @@ string(REGEX MATCH "[(0-9)]+" MKL_VERSION_MAJOR ${MKL_VERSION_MAJOR_LINE})
 # todo: other platforms
 # GNU
 if (UNIX)
-    # Always required
-    set(MKL_LINK_OPTIONS -lpthread -lm -ldl)
-
     # Choose required RTL
     if(MKL_THREADING_INTEL)
         set(MKL_LINK_OPTIONS ${MKL_LINK_OPTIONS} -liomp5)
@@ -200,13 +213,28 @@ if (UNIX)
         set(MKL_LINK_OPTIONS ${MKL_LINK_OPTIONS} -lgomp)
     endif()
 
-    # todo: dynamic MKL
+    # Always required
+    set(MKL_LINK_OPTIONS "${MKL_LINK_OPTIONS} -lpthread -lm -ldl")
 
-    if (NOT APPLE) # and static
-        # --start-group --end-group required
-        set(MKL_LIBRARIES
-                "-Wl,--start-group"  ${MKL_LIBRARIES}  "-Wl,--end-group")
-    endif ()
+    if (MKL_STATIC)
+        # Static linking
+        if (UNIX AND NOT APPLE)
+            # Must add --start-group --end-group required
+            set(MKL_LIBRARIES
+                    "-Wl,--start-group"  ${MKL_LIBRARIES}  "-Wl,--end-group")
+        endif ()
+    else()
+        # Dynamic linking
+
+        # Linux / macOS specific
+        if (UNIX AND NOT APPLE)
+            set(MKL_LIBRARIES "-L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed ${MKL_LIBRARIES}")
+        elseif(APPLE)
+            # todo: test this on macOS
+            set(MKL_LIBRARIES "-L$ENV{MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib ${MKL_LIBRARIES}")
+        endif()
+    endif()
+
 
     set(MKL_LIBRARIES ${MKL_LIBRARIES} ${MKL_LINK_OPTIONS})
 endif ()
@@ -240,15 +268,18 @@ message(STATUS "  Found MKL version " ${MKL_VERSION})
 
 # Handle the QUIETLY and REQUIRED arguments and set MKL_FOUND to TRUE
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(MKL DEFAULT_MSG
+find_package_handle_standard_args(MKL REQUIRED_VARS
         MKL_LIBRARIES
         MKL_INTERFACE_LIBRARY
         MKL_CORE_LIBRARY
         MKL_THREADING_LAYER_LIBRARY
-        MKL_INCLUDE_DIRS)
+        MKL_INCLUDE_DIRS
+        VERSION_VAR
+        MKL_VERSION)
 
 mark_as_advanced(MKL_LIBRARIES
         MKL_INTERFACE_LIBRARY
         MKL_CORE_LIBRARY
         MKL_THREADING_LAYER_LIBRARY
-        MKL_INCLUDE_DIRS)
+        MKL_INCLUDE_DIRS
+        MKL_VERSION)

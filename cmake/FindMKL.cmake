@@ -214,7 +214,7 @@ if (UNIX)
     endif()
 
     # Always required
-    set(MKL_LINK_OPTIONS "${MKL_LINK_OPTIONS} -lpthread -lm -ldl")
+    set(MKL_LINK_OPTIONS ${MKL_LINK_OPTIONS} -lpthread -lm -ldl)
 
     if (MKL_STATIC)
         # Static linking

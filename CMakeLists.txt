@@ -17,7 +17,7 @@ option(ENABLE_PARMETIS "Enable parmetis support" OFF)
 option(ENABLE_TECIO "Enable tecio support" OFF)
 
 # Parallel build
-option(ENABLE_MPI "Enable MPI message")
+option(ENABLE_MPI "Enable MPI message" OFF)
 
 # MKL support
 option(ENABLE_MKL "Build with Intel (R) MKL support" ON)
@@ -144,6 +144,6 @@ if (ENABLE_MPI)
     set(CMAKE_CXX_COMPILER ${THE_MPI_CXX_COMPILER})
     set(CMAKE_C_COMPILER ${THE_MPI_C_COMPILER})
 endif ()
-message(STATUS "CXX compiler" ${CMAKE_CXX_COMPILER})
-message(STATUS "C   compiler" ${CMAKE_C_COMPILER})
+message(STATUS "CXX compiler " ${CMAKE_CXX_COMPILER})
+message(STATUS "C   compiler " ${CMAKE_C_COMPILER})
 message("---------------------------------------------------------------------")

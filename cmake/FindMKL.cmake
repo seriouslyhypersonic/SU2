@@ -16,6 +16,7 @@
 # MKL_VERSION_MAJOR           - Major MKL version
 # MKL_INCLUDE_DIRS            - MKL include directories
 # MKL_LIBRARIES               - The MKL libraries and link advisor dependecies
+# MKL_LINK_DIRS               - MKL link directories
 #
 # For optional detection summary:
 # MKL_INTERFACE_LIBRARY       - MKL interface library
@@ -23,7 +24,8 @@
 # MKL_THREADING_LAYER_LIBRARY - MKL threaing layer library
 #
 # Requires one of the following envirnment variables:
-#     - MKLROOT points to the MKL root
+#     - MKLROOT   points to the MKL root
+#     - INTELLIBS points to Intel and MKL libraries
 #     todo: remove - INTEL   points to the parent directory of MKLROOT
 #
 # Execution mode is selected with -DMKL_THREADING=<intel | gnu | sequential>
@@ -38,6 +40,10 @@
 #     target_link_libraries(TARGET ${MKL_LIBRARIES})
 # endif()
 
+message("---------------------------------------------------------------------")
+message("Intel(R) Math Kernel libraries                                       ")
+message("---------------------------------------------------------------------")
+
 # ------------------------------------------------------------------------------
 # Options
 # ------------------------------------------------------------------------------
@@ -50,9 +56,39 @@ elseif(NOT MKL_LINKING STREQUAL dynamic)
     message(FATAL_ERROR "Invalid MKL_LINKING value '${MKL_LINKING}'")
 endif()
 
-message("---------------------------------------------------------------------")
-message("Intel(R) Math Kernel libraries                                       ")
-message("---------------------------------------------------------------------")
+# ------------------------------------------------------------------------------
+# INTELLIBS
+# ------------------------------------------------------------------------------
+if(NOT DEFINED ENV{INTELLIBS})
+    set(NO_INTELLIBS_MSG "Environmental variable INTELLIBS not detected:")
+    if(UNIX AND NOT APPLE)
+        message(WARNING "${NO_INTELLIBS_MSG} trying LD_LIBRARY_PATH")
+        # todo: linux
+    endif()
+    if(APPLE)
+        message(WARNING "${NO_INTELLIBS_MSG} trying DYLD_LIBRARY_PATH")
+        if (NOT DEFINED ENV{DYLD_LIBRARY_PATH})
+            message(FATAL_ERROR "DYLD_LIBRARY_PATH not found")
+        endif ()
+    endif()
+    #todo: windows
+else()
+    set(MKL_LINK_DIRS $ENV{INTELLIBS})
+endif()
+string(REPLACE : ";" MKL_LINK_DIRS ${MKL_LINK_DIRS})
+
+# Check if there is any intel related stuff in INTELLIBS
+#file(INTELSTR ${MKL_INCLUDE_DIRS}/mkl_version.h MKL_VERSION_LINE REGEX "INTEL_MKL_VERSION")
+#string(REGEX MATCH "[(0-9)]+" MKL_VERSION ${MKL_VERSION_LINE})
+
+message(STATUS "MKL path                       $ENV{MKLROOT}")
+set(MKL_LINK_DIR_MSG "MKL link directories           ")
+foreach(LINK_LIB IN LISTS MKL_LINK_DIRS)
+    if(LINK_LIB)
+        message(STATUS "${MKL_LINK_DIR_MSG}${LINK_LIB}")
+    endif()
+    set(MKL_LINK_DIR_MSG "                               ")
+endforeach()
 message(STATUS "MKL linking                    ${MKL_LINKING}")
 # If already in cache, be silent
 #if (MKL_INCLUDE_DIRS
@@ -264,7 +300,9 @@ endif()
 
 # Report success
 message(STATUS Result:)
-message(STATUS "  Found MKL version " ${MKL_VERSION})
+message(STATUS "  Found MKL version ${MKL_VERSION}")
+#message(STATUS "  MKL include       ${MKL_INCLUDE_DIRS}")
+#message(STATUS "  MKL libraries     ${MKL_LIBRARIES}")
 
 # Handle the QUIETLY and REQUIRED arguments and set MKL_FOUND to TRUE
 include(FindPackageHandleStandardArgs)
